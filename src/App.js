@@ -18,23 +18,32 @@
   login) then the user gets notified. Also if a blog post is created successfully then it notifies. For this I'm using -
   a message component that was developed in the phone-book app.
 
+  Exercise 5.5: In this exercise I implemented the Togglable component that renders any child components and also a pair
+  of show-cancel buttons so the child components are visible or not, this is used in the login form and also the form --
+  when creating a new blog.
+
+  Exercise 5.6: Here I moved the form for creating a new blog to it's own component, I also moved the state that was ---
+  only depending on that form, this was the title, author, url and likes of the blog.
+
+  Exercise 5.7: For this exercise I refactored the Blog component so it has a visibility state that changes the way that
+  a blog is shown, if view button is clicked then it shows more info about the blog, if then the hide button is clicked-
+  then it goes back to show only the blog title.
+
 */
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import Blog from './components/Blog'
 import Message from './components/Message'
+import Togglable from './components/Togglable'
+import LoginForm from './components/LoginForm'
+import NewBlogForm from './components/NewBlogForm'
 import blogService from './services/blogs'
 import loginService from './services/login'
 
 const App = () => {
   const [message, setMessage] = useState({});
   const [blogs, setBlogs] = useState([]);
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
   const [user, setUser] = useState(null);
-  const [title, setTitle] = useState('');
-  const [author, setAuthor] = useState('');
-  const [url, setUrl] = useState('');
-  const [likes, setLikes] = useState(0);
+  const blogFormRef = useRef(null);
 
   useEffect(() => {
     try {
@@ -65,24 +74,11 @@ const App = () => {
     }
   }, []);
 
-  const handleLogin = async (event) => {
-    event.preventDefault();
-    try {
-      const user = await loginService.login({ username, password });
-      window.localStorage.setItem('blogListUser', JSON.stringify(user));
-      blogService.setToken(user.token);
-      setUser(user);
-      setUsername('');
-      setPassword('');
-    } catch (exception) {
-      setMessage({
-        text: `Wrong username or password.`,
-        class: 'failure'
-      });
-      setTimeout(() => {
-        setMessage({})
-      }, 5000);
-    }
+  const loginHandler = async (username, password) => {
+    const user = await loginService.login({ username, password });
+    window.localStorage.setItem('blogListUser', JSON.stringify(user));
+    blogService.setToken(user.token);
+    setUser(user);
   };
 
   const handleLogOut = async (event) => {
@@ -91,99 +87,12 @@ const App = () => {
     setUser(null);
   }
 
-  const handleNewBlog = async (event) => {
-    event.preventDefault();
-    try {
-      const blog = await blogService.createBlog({ title, author, url, likes });
-      const updatedBlogs = blogs.concat(blog);
-      setBlogs(updatedBlogs);
-      setTitle('');
-      setAuthor('');
-      setUrl('');
-      setLikes(0);
-      setMessage({
-        text: `A new blog added: ${blog.title} by ${blog.author}`,
-        class: 'success'
-      });
-      setTimeout(() => {
-        setMessage({})
-      }, 5000);
-    } catch (exception) {
-      setMessage({
-        text: `Error creating a new blog post.`,
-        class: 'failure'
-      });
-      setTimeout(() => {
-        setMessage({})
-      }, 5000);
-    }
+  const createBlogHandler = async (blogObject) => {
+    const blog = await blogService.createBlog(blogObject);
+    const updatedBlogs = blogs.concat(blog);
+    blogFormRef.current.toggleVisibility()
+    setBlogs(updatedBlogs);
   }
-
-  const loginForm = () =>
-  (<form onSubmit={handleLogin}>
-    <h3>Login with your username and password</h3>
-    <div>
-      Username:
-      <input
-        type="text"
-        value={username}
-        name="Username"
-        onChange={({ target }) => setUsername(target.value)}
-      />
-    </div>
-    <div>
-      Password:
-      <input
-        type="password"
-        value={password}
-        name="Password"
-        onChange={({ target }) => setPassword(target.value)}
-      />
-    </div>
-    <button type="submit">login</button>
-  </form>);
-
-  const newBlogForm = () => (
-    <form onSubmit={handleNewBlog}>
-      <h3>Create a new blog post</h3>
-      <div>
-        Title:
-        <input
-          type="text"
-          value={title}
-          name="Title"
-          onChange={({ target }) => setTitle(target.value)}
-        />
-      </div>
-      <div>
-        Author:
-        <input
-          type="text"
-          value={author}
-          name="Author"
-          onChange={({ target }) => setAuthor(target.value)}
-        />
-      </div>
-      <div>
-        URL:
-        <input
-          type="text"
-          value={url}
-          name="URL"
-          onChange={({ target }) => setUrl(target.value)}
-        />
-      </div>
-      <div>
-        Likes:
-        <input
-          type="number"
-          value={likes}
-          name="Likes"
-          onChange={({ target }) => setLikes(target.value)}
-        />
-      </div>
-      <button type="submit">Add Blog</button>
-    </form>);
 
   const blogsForm = () => (
     <div>
@@ -201,14 +110,23 @@ const App = () => {
 
       <Message message={message} />
 
-      {user === null
-        ? loginForm()
-        : <>
-          <h3>{user.name} is logged in</h3>
-          <button onClick={handleLogOut}>Log Out</button>
-          {newBlogForm()}
-          {blogsForm()}
-        </>}
+      {
+        user === null
+          ?
+          <Togglable buttonLabel="Log In">
+            <LoginForm newLogin={loginHandler} />
+          </Togglable>
+          : <>
+            <h3>{user.name} is logged in</h3>
+            <button onClick={handleLogOut}>Log Out</button>
+            <Togglable buttonLabel="New Blog" ref={blogFormRef}>
+              <NewBlogForm
+                createBlog={createBlogHandler}
+              />
+            </Togglable>
+          </>
+      }
+      {blogsForm()}
     </div>
   )
 }
