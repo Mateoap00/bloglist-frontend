@@ -1,8 +1,6 @@
 import { useState } from 'react'
-import Message from './Message'
 
 const NewBlogForm = ({ createBlog }) => {
-    const [message, setMessage] = useState({});
     const [title, setTitle] = useState('');
     const [author, setAuthor] = useState('');
     const [url, setUrl] = useState('');
@@ -10,35 +8,16 @@ const NewBlogForm = ({ createBlog }) => {
 
     const handleNewBlog = async (event) => {
         event.preventDefault();
-        try {
-            await createBlog({ title, author, url, likes });
-            setMessage({
-                text: `A new blog added: ${title} by ${author}`,
-                class: 'success'
-            });
-            setTimeout(() => {
-                setMessage({})
-            }, 5000);
-            setTitle('');
-            setAuthor('');
-            setUrl('');
-            setLikes(0);
-        } catch (exception) {
-            setMessage({
-                text: `Error creating a new blog post.`,
-                class: 'failure'
-            });
-            setTimeout(() => {
-                setMessage({})
-            }, 5000);
-        }
+        await createBlog({ title, author, url, likes });
+        setTitle('');
+        setAuthor('');
+        setUrl('');
+        setLikes(0);
     }
 
     return (
         <form onSubmit={handleNewBlog}>
             <h3>Create a new blog post</h3>
-
-            <Message message={message} />
 
             <div>
                 Title:

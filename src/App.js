@@ -25,9 +25,24 @@
   Exercise 5.6: Here I moved the form for creating a new blog to it's own component, I also moved the state that was ---
   only depending on that form, this was the title, author, url and likes of the blog.
 
-  Exercise 5.7: For this exercise I refactored the Blog component so it has a visibility state that changes the way that
+  Exercise 5.7*: For this exercise I refactored the Blog component so it has a visibility state that changes the way that
   a blog is shown, if view button is clicked then it shows more info about the blog, if then the hide button is clicked-
   then it goes back to show only the blog title.
+
+  Exercise 5.8: In this exercise I implemented the like a blog functionality so when a user logs in, can like a blog of-
+  the blog list. For this I refactored the put request handler in the backend and added a like a blog handler in the ---
+  frontend so when the like button is clicked then it sends the blog object only with a +1 in the likes number as a ----
+  parameter in the axios request.
+
+  Exercise 5.9: For this exercise I changed the order in which the blog list is displayed so it shows first the blogs --
+  with the most likes, in descending order. To do this I'm using the sort method that compares the current blog's likes-
+  with the next blog's likes. The new array of blogs in order is assigned to the blogsToShow variable and this gets map-
+  to show in the frontend.
+
+  Exercise 5.10: Here I implemented a delete button so a logged user is able to delete any blog post made by that user.-
+  If the user didn't add that blog then the button won't show up at all. I refactored the delete handler in the backend-
+  controller of the blogs and I'm conditional rendering the delete button in the Blog component of the frontend. I'm ---
+  using the window.confirm element so the user gets ask to confirm the deletion of the blog post.
 
 */
 import { useState, useEffect, useRef } from 'react'
@@ -46,23 +61,22 @@ const App = () => {
   const blogFormRef = useRef(null);
 
   useEffect(() => {
-    try {
-      async function getAllBlogs() {
+    const getAllBlogs = async () => {
+      try {
         const blogs = await blogService.getAll();
         console.log(blogs);
         setBlogs(blogs);
+      } catch (exception) {
+        setMessage({
+          text: `Error connecting to the DB to get the saved blogs.`,
+          class: 'failure'
+        });
+        setTimeout(() => {
+          setMessage({})
+        }, 5000);
       }
-      getAllBlogs();
-    } catch (exception) {
-      setMessage({
-        text: `Error getting the saved blogs.`,
-        class: 'failure'
-      });
-      setTimeout(() => {
-        setMessage({})
-      }, 5000);
     }
-
+    getAllBlogs();
   }, []);
 
   useEffect(() => {
@@ -75,34 +89,138 @@ const App = () => {
   }, []);
 
   const loginHandler = async (username, password) => {
-    const user = await loginService.login({ username, password });
-    window.localStorage.setItem('blogListUser', JSON.stringify(user));
-    blogService.setToken(user.token);
-    setUser(user);
+    try {
+      const user = await loginService.login({ username, password });
+      window.localStorage.setItem('blogListUser', JSON.stringify(user));
+      blogService.setToken(user.token);
+      setUser(user);
+    } catch (exception) {
+      setMessage({
+        text: `Wrong username or password.`,
+        class: 'failure'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    }
+
   };
 
-  const handleLogOut = async (event) => {
-    window.localStorage.removeItem('blogListUser');
-    blogService.setToken('');
-    setUser(null);
+  const logOutHandler = async (event) => {
+    try {
+      window.localStorage.removeItem('blogListUser');
+      blogService.setToken('');
+      setUser(null);
+    } catch (exception) {
+      setMessage({
+        text: `Error trying to log out.`,
+        class: 'failure'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    }
+
   }
 
   const createBlogHandler = async (blogObject) => {
-    const blog = await blogService.createBlog(blogObject);
-    const updatedBlogs = blogs.concat(blog);
-    blogFormRef.current.toggleVisibility()
-    setBlogs(updatedBlogs);
+    try {
+      const blog = await blogService.createBlog(blogObject);
+      blogFormRef.current.toggleVisibility();
+      const updatedBlogs = blogs.concat(blog);
+      setBlogs(updatedBlogs);
+      setMessage({
+        text: `A new blog added: ${blog.title} by ${blog.author}`,
+        class: 'success'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    } catch (exception) {
+      setMessage({
+        text: `Error creating a new blog post.`,
+        class: 'failure'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    }
   }
 
-  const blogsForm = () => (
-    <div>
-      <h3>BlogsList</h3>
-      {blogs.map(blog =>
-        <Blog key={blog.id} blog={blog} />
-      )}
-    </div>
+  const likesBlogHandler = async (id, blogObject) => {
+    try {
+      const blog = await blogService.likesBlog(id, blogObject);
+      const updatedBlogs = blogs.map((b) => {
+        if (b.id === id) {
+          return blog;
+        } else {
+          return b;
+        }
+      });
+      setBlogs(updatedBlogs);
+    } catch (exception) {
+      setMessage({
+        text: `Error: A user must be logged in to be able to like a blog.`,
+        class: 'failure'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    }
+  }
 
-  );
+  const deleteBlogHandler = async (id) => {
+    try {
+      await blogService.deleteBlog(id);
+      const updatedBlogs = blogs.filter((b) => b.id !== id);
+      setBlogs(updatedBlogs);
+      setMessage({
+        text: `Blog deleted successfully!`,
+        class: 'success'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    } catch (exception) {
+      setMessage({
+        text: `Error deleting the blog from the blog list.`,
+        class: 'failure'
+      });
+      setTimeout(() => {
+        setMessage({})
+      }, 5000);
+    }
+  }
+
+  const blogsForm = () => {
+    let blogsToShow = blogs.concat();
+    let username = null;
+    // If next.likes - curr.likes > 0 then curr goes after next
+    // If next.likes - curr.likes < 0 then curr goes before next
+    // If next.likes - curr.likes = 0 then curr and next stay in the same place
+    blogsToShow.sort((curr, next) => {
+      return next.likes - curr.likes;
+    });
+    if (user !== null) {
+      username = user.username;
+    }
+
+    return (
+      <div>
+        <h3>BlogsList</h3>
+        {blogsToShow.map(blog =>
+          <Blog
+            key={blog.id}
+            blog={blog}
+            user={username}
+            handleLike={likesBlogHandler}
+            handleDelete={deleteBlogHandler}
+          />
+        )}
+      </div>
+    );
+
+  };
 
   return (
     <div>
@@ -113,22 +231,31 @@ const App = () => {
       {
         user === null
           ?
-          <Togglable buttonLabel="Log In">
-            <LoginForm newLogin={loginHandler} />
-          </Togglable>
-          : <>
+          <div>
+            <Togglable buttonLabel="Log In">
+              <LoginForm newLogin={loginHandler} />
+            </Togglable>
+          </div>
+          :
+          <div>
             <h3>{user.name} is logged in</h3>
-            <button onClick={handleLogOut}>Log Out</button>
-            <Togglable buttonLabel="New Blog" ref={blogFormRef}>
+            <button onClick={logOutHandler}>Log Out</button>
+            <Togglable
+              buttonLabel="New Blog"
+              ref={blogFormRef}>
               <NewBlogForm
                 createBlog={createBlogHandler}
               />
             </Togglable>
-          </>
+          </div>}
+      {blogs.length > 0
+        ?
+        blogsForm()
+        :
+        <></>
       }
-      {blogsForm()}
     </div>
-  )
+  );
 }
 
 export default App
