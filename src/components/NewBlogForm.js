@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState } from 'react';
 
 const NewBlogForm = ({ createBlog }) => {
     const [title, setTitle] = useState('');
@@ -13,7 +13,7 @@ const NewBlogForm = ({ createBlog }) => {
         setAuthor('');
         setUrl('');
         setLikes(0);
-    }
+    };
 
     return (
         <form onSubmit={handleNewBlog}>
@@ -57,6 +57,6 @@ const NewBlogForm = ({ createBlog }) => {
             </div>
             <button type="submit">Add Blog</button>
         </form>);
-}
+};
 
 export default NewBlogForm;

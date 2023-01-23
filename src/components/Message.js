@@ -1,5 +1,5 @@
 const Message = ({ message }) => {
-    let messageStyle = {}
+    let messageStyle = {};
 
     const hasMessage = Object.keys(message).length !== 0;
 
@@ -23,7 +23,7 @@ const Message = ({ message }) => {
                 padding: 10,
                 marginBottom: 10
             }
-            : messageStyle = {}
+            : messageStyle = {};
 
     return (
         hasMessage === true
@@ -36,6 +36,6 @@ const Message = ({ message }) => {
             </>
             : null
     );
-}
+};
 
 export default Message;
