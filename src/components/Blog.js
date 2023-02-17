@@ -30,21 +30,26 @@ const Blog = ({ blog, user, handleLike, handleDelete }) => {
             {visible === false
                 ?
                 < div style={blogStyle}>
-                    `&quot;`{blog.title}`&quot;` <button onClick={toggleVisibility}>View</button>
+                    <span className='blogTitle'>&quot;{blog.title}&quot;</span>
+                    <span> by </span>
+                    <span className='blogAuthor'>{blog.author}</span>
+                    <button onClick={toggleVisibility}>View</button>
                 </div >
                 :
                 < div style={blogStyle}>
                     <div>
-                        `&quot;`{blog.title}`&quot;` <button onClick={toggleVisibility}>Hide</button>
+                        <span className='blogTitle'>&quot;{blog.title}&quot; </span>
+                        <button onClick={toggleVisibility}>Hide</button>
                     </div>
                     <div>
-                        {blog.url}
+                        <span className='blogUrl'>{blog.url}</span>
                     </div>
                     <div>
-                        {blog.likes} <button onClick={givesLike}>Like</button>
+                        <span className='blogLikes'>{blog.likes}</span>
+                        <button onClick={givesLike}>Like</button>
                     </div>
                     <div>
-                        <strong> {blog.author}</strong >
+                        <span className='blogAuthor'><strong>{blog.author}</strong ></span>
                     </div>
                     {blog.user.username === user
                         ?
