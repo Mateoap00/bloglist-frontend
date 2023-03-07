@@ -23,6 +23,7 @@ const NewBlogForm = ({ createBlog }) => {
                 Title:
                 <input
                     type="text"
+                    id='newBlogTitle'
                     value={title}
                     name="Title"
                     placeholder='Write the title...'
@@ -33,6 +34,7 @@ const NewBlogForm = ({ createBlog }) => {
                 Author:
                 <input
                     type="text"
+                    id='newBlogAuthor'
                     value={author}
                     name="Author"
                     placeholder='Write the author...'
@@ -43,6 +45,7 @@ const NewBlogForm = ({ createBlog }) => {
                 URL:
                 <input
                     type="text"
+                    id='newBlogURL'
                     value={url}
                     name="URL"
                     placeholder='Write the URL...'
@@ -53,13 +56,19 @@ const NewBlogForm = ({ createBlog }) => {
                 Likes:
                 <input
                     type="number"
+                    id='newBlogLikes'
                     value={likes}
                     name="Likes"
                     placeholder='Select a number of likes...'
                     onChange={({ target }) => setLikes(target.value)}
                 />
             </div>
-            <button type="submit">Add Blog</button>
+            <button
+                type="submit"
+                id='addBlogBtn'
+            >
+                Add Blog
+            </button>
         </form>);
 };
 

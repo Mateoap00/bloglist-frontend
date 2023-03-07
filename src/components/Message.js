@@ -30,7 +30,7 @@ const Message = ({ message }) => {
             ?
             <>
                 <hr></hr>
-                <div style={messageStyle}>
+                <div className={message.class} style={messageStyle}>
                     {message.text}
                 </div >
             </>

@@ -245,7 +245,7 @@ const App = () => {
                     :
                     <div>
                         <h3>{user.name} is logged in</h3>
-                        <button onClick={logOutHandler}>Log Out</button>
+                        <button id='logOutBtn' onClick={logOutHandler}>Log Out</button>
                         <Togglable
                             buttonLabel="New Blog"
                             ref={blogFormRef}>

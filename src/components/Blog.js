@@ -29,14 +29,14 @@ const Blog = ({ blog, user, handleLike, handleDelete }) => {
         <>
             {visible === false
                 ?
-                < div style={blogStyle}>
+                < div className='blogMinimized' style={blogStyle}>
                     <span className='blogTitle'>&quot;{blog.title}&quot;</span>
                     <span> by </span>
                     <span className='blogAuthor'>{blog.author}</span>
                     <button onClick={toggleVisibility}>View</button>
                 </div >
                 :
-                < div style={blogStyle}>
+                < div className='blogMaximized' style={blogStyle}>
                     <div>
                         <span className='blogTitle'>&quot;{blog.title}&quot; </span>
                         <button onClick={toggleVisibility}>Hide</button>
@@ -44,17 +44,17 @@ const Blog = ({ blog, user, handleLike, handleDelete }) => {
                     <div>
                         <span className='blogUrl'>{blog.url}</span>
                     </div>
-                    <div>
+                    <div className='likesDiv'>
                         <span className='blogLikes'>{blog.likes}</span>
-                        <button onClick={givesLike}>Like</button>
+                        <button className='likeBtn' onClick={givesLike}>Like</button>
                     </div>
                     <div>
                         <span className='blogAuthor'><strong>{blog.author}</strong ></span>
                     </div>
                     {blog.user.username === user
                         ?
-                        <div>
-                            <button onClick={deletesPost}>Delete</button>
+                        <div className='deleteDiv'>
+                            <button className='deleteBtn' onClick={deletesPost}>Delete</button>
                         </div>
                         :
                         <></>
